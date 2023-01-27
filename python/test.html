@@ -1,0 +1,90 @@
+
+<!-- Copyright (C) Microsoft Corporation. All rights reserved. -->
+<!DOCTYPE html>
+<html>
+	<head>
+		<script>
+			performance.mark('code/didStartRenderer');
+		</script>
+		<meta charset="utf-8" />
+
+		<!-- Mobile tweaks -->
+		<meta name="mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-title" content="Code">
+		<link rel="apple-touch-icon" sizes="192x192" href="./_static/src/browser/media/pwa-icon-192.png" />
+		<link rel="apple-touch-icon" sizes="512x512" href="./_static/src/browser/media/pwa-icon-512.png" />
+
+		<!-- Disable pinch zooming -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+
+		<!-- Workbench Configuration -->
+		<meta id="vscode-workbench-web-configuration" data-settings="{&quot;remoteAuthority&quot;:&quot;remote&quot;,&quot;webviewEndpoint&quot;:&quot;./static/out/vs/workbench/contrib/webview/browser/pre&quot;,&quot;developmentOptions&quot;:{&quot;logLevel&quot;:2},&quot;userDataPath&quot;:&quot;/config/data&quot;,&quot;isEnabledFileDownloads&quot;:true,&quot;enableWorkspaceTrust&quot;:true,&quot;productConfiguration&quot;:{&quot;rootEndpoint&quot;:&quot;.&quot;,&quot;updateEndpoint&quot;:&quot;./update/check&quot;,&quot;logoutEndpoint&quot;:&quot;./logout&quot;,&quot;proxyEndpointTemplate&quot;:&quot;./proxy/{{port}}&quot;,&quot;codeServerVersion&quot;:&quot;4.4.0&quot;,&quot;enableTelemetry&quot;:true,&quot;embedderIdentifier&quot;:&quot;server-distro&quot;,&quot;serviceWorker&quot;:{&quot;scope&quot;:&quot;./&quot;,&quot;path&quot;:&quot;./_static/out/browser/serviceWorker.js&quot;},&quot;extensionsGallery&quot;:{&quot;serviceUrl&quot;:&quot;https://open-vsx.org/vscode/gallery&quot;,&quot;itemUrl&quot;:&quot;https://open-vsx.org/vscode/item&quot;,&quot;resourceUrlTemplate&quot;:&quot;http://remote/web-extension-resource/open-vsx.org/vscode/asset/{publisher}/{name}/{version}/Microsoft.VisualStudio.Code.WebResources/{path}&quot;,&quot;controlUrl&quot;:&quot;&quot;,&quot;recommendationsUrl&quot;:&quot;&quot;}}}">
+
+		<!-- Workbench Auth Session -->
+		<meta id="vscode-workbench-auth-session" data-settings="">
+
+		<!-- NLS Configuration -->
+		<meta id="vscode-remote-nls-configuration" data-settings="{&quot;locale&quot;:&quot;ko&quot;,&quot;availableLanguages&quot;:{&quot;*&quot;:&quot;ko&quot;},&quot;_languagePackId&quot;:&quot;7f2b75a751ab1839cc7719cedd31e8cc.ko&quot;,&quot;_translationsConfigFile&quot;:&quot;/config/data/clp/7f2b75a751ab1839cc7719cedd31e8cc.ko/tcf.json&quot;,&quot;_cacheRoot&quot;:&quot;/config/data/clp/7f2b75a751ab1839cc7719cedd31e8cc.ko&quot;,&quot;_resolvedLanguagePackCoreLocation&quot;:&quot;/config/data/clp/7f2b75a751ab1839cc7719cedd31e8cc.ko/dfd34e8260c270da74b5c2d86d61aee4b6d56977&quot;,&quot;_corruptedFile&quot;:&quot;/config/data/clp/7f2b75a751ab1839cc7719cedd31e8cc.ko/corrupted.info&quot;,&quot;_languagePackSupport&quot;:true}">
+
+		<!-- Workbench Icon/Manifest/CSS -->
+		<link rel="icon" href="./_static/src/browser/media/favicon-dark-support.svg" />
+		<link rel="alternate icon" href="./_static/src/browser/media/favicon.ico" />
+		<link rel="manifest" href="./manifest.json" crossorigin="use-credentials" />
+		<link data-name="vs/workbench/workbench.web.main" rel="stylesheet" href="./static/out/vs/workbench/workbench.web.main.css">
+
+	</head>
+
+	<body aria-label="">
+	</body>
+
+	<!-- Startup (do not modify order of script tags!) -->
+	<script src="./static/out/vs/loader.js"></script>
+	<script src="./static/out/vs/webPackagePaths.js"></script>
+	<script>
+		let nlsConfig
+		try {
+			nlsConfig = JSON.parse(document.getElementById("vscode-remote-nls-configuration").getAttribute("data-settings"))
+			if (nlsConfig._resolvedLanguagePackCoreLocation) {
+				const bundles = Object.create(null)
+				nlsConfig.loadBundle = (bundle, _language, cb) => {
+					const result = bundles[bundle]
+					if (result) {
+						return cb(undefined, result)
+					}
+					const path = nlsConfig._resolvedLanguagePackCoreLocation + "/" + bundle.replace(/\//g, "!") + ".nls.json"
+					fetch(`./vscode-remote-resource?path=${encodeURIComponent(path)}`)
+						.then((response) => response.json())
+						.then((json) => {
+							bundles[bundle] = json
+							cb(undefined, json)
+						})
+						.catch(cb)
+				}
+			}
+		} catch (error) { /* Probably fine. */ }
+		Object.keys(self.webPackagePaths).map(function (key, index) {
+			self.webPackagePaths[key] = new URL(
+				`./static/node_modules/${key}/${self.webPackagePaths[key]}`,
+				window.location,
+			).toString();
+		});
+		require.config({
+			baseUrl: new URL(`./static/out`, window.location).toString(),
+			recordStats: true,
+			trustedTypesPolicy: window.trustedTypes?.createPolicy('amdLoader', {
+				createScriptURL(value) {
+					return value;
+				}
+			}),
+			paths: self.webPackagePaths,
+			'vs/nls': nlsConfig,
+		});
+	</script>
+	<script>
+		performance.mark('code/willLoadWorkbenchMain');
+	</script>
+	<script src="./static/out/vs/workbench/workbench.web.main.nls.js"></script>
+	<script src="./static/out/vs/workbench/workbench.web.main.js"></script>
+	<script src="./static/out/vs/code/browser/workbench/workbench.js"></script>
+</html>
